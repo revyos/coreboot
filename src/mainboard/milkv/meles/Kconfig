@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: GPL-2.0-only
+if BOARD_MILKV_MELES
+config BOARD_SPECIFIC_OPTIONS
+	def_bool y
+	select SOC_THEAD_TH1520
+	select BOARD_ROMSIZE_KB_1024
+	select MISSING_BOARD_RESET
+
+config MAINBOARD_DIR
+	default "milkv/meles"
+
+config MAINBOARD_PART_NUMBER
+	default "Meles"
+
+config HEAP_SIZE
+	default 0x10000
+endif
