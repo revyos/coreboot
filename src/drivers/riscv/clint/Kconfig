@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: GPL-2.0-only
+config DRIVERS_RISCV_CLINT
+	bool
+	depends on ARCH_RISCV
+	help
+	  Match the CLINT compatible string to its counter and MMIO rules.
