@@ -73,6 +73,9 @@ void hls_init(uint32_t hart_id, void *fdt);
 /* This function is used to initialize HLS()->time/HLS()->timecmp  */
 void mtime_init(void);
 
+/* SoCs may override the timer comparator access width. */
+void mtime_set(uint64_t when);
+
 /*
  * This function needs be implement by SoC code.
  * Although the privileged instruction set defines that MSIP will be

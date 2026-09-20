@@ -23,11 +23,16 @@ static uintptr_t send_ipi(uintptr_t *pmask, intptr_t type)
 	return 0;
 }
 
+void __weak mtime_set(uint64_t when)
+{
+	*(HLS()->timecmp) = when;
+}
+
 static uintptr_t sbi_set_timer(uint64_t when)
 {
 	clear_csr(mip, MIP_STIP);
 	set_csr(mie, MIP_MTIP);
-	*(HLS()->timecmp) = when;
+	mtime_set(when);
 	return 0;
 }
 
