@@ -62,10 +62,21 @@ config OPENSBI_FW_DYNAMIC_BOOT_HART
 
 config TH1520_CPU_750MHZ
 	bool "Initialize the CPU clock to 750 MHz"
+	depends on !TH1520_AON
 	default y
 	help
 	  Program the unused CPU PLL and switch with a 150 MHz bus clock.
 	  This cold-boot setting leaves voltage control and OS DVFS unchanged.
+
+config TH1520_AON
+	bool "Start AON and request the 1.848 GHz CPU operating point"
+	help
+	  Load a board-configured E902 image, confirm its PMIC mailbox service,
+	  request 1.0 V CPU rails and raise CPU frequency only after readback.
+
+config TH1520_AON_FILE
+	string "Board-configured AON firmware path"
+	depends on TH1520_AON
 
 choice
 	prompt "TH1520 boot medium"

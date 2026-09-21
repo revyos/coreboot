@@ -21,4 +21,10 @@ all-y += emmc.c
 bootblock-$(CONFIG_TH1520_STORAGE_TEST) += storage_test.c
 ramstage-y += chip.c
 ramstage-y += cbmem.c
+ramstage-$(CONFIG_TH1520_AON) += cpu_clock.c aon.c
+ifeq ($(CONFIG_TH1520_AON),y)
+cbfs-files-y += fallback/aon
+fallback/aon-file := $(call strip_quotes,$(CONFIG_TH1520_AON_FILE))
+fallback/aon-type := raw
+endif
 endif

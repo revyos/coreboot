@@ -16,6 +16,8 @@ void bootblock_soc_early_init(void)
 void bootblock_soc_init(void)
 {
 	th1520_cpu_clock_init();
+	if (CONFIG(TH1520_AON))
+		write32((void *)0xfffff44024, 0);
 	/* Cold boot releases hart 0 only. Join the coreboot SMP rendezvous. */
 	for (unsigned int hart = 1; hart < CONFIG_MAX_CPUS; hart++) {
 		write32((void *)(0xffef018050 + 8UL * hart),

@@ -31,6 +31,7 @@ with tempfile.TemporaryDirectory() as temporary:
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(value)
     for name, sources in {
+        "aon": ["util/thead/tests/aon.c"],
         "cpu-clock": ["util/thead/tests/cpu-clock.c"],
         "spi": ["util/thead/tests/spi.c", "src/drivers/spi/designware/spi.c"],
         "sdhci": ["util/thead/tests/sdhci-test.c"],
