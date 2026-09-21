@@ -412,9 +412,8 @@ int mmc_update_capacity(struct storage_media *media)
 	if (ext_csd[EXT_CSD_REV] < 2)
 		return 0;
 
-	/* Determine the eMMC device information */
-	media->partition_config = ext_csd[EXT_CSD_PART_CONF]
-		& EXT_CSD_PART_ACCESS_MASK;
+	/* Preserve boot enable and acknowledgement across partition switches. */
+	media->partition_config = ext_csd[EXT_CSD_PART_CONF];
 
 	/* Determine the user partition size
 	 *
