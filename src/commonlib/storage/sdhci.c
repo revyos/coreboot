@@ -167,9 +167,12 @@ static int sdhci_send_command_bounced(struct sd_mmc_ctrlr *ctrlr,
 		if (data->flags == DATA_FLAG_READ)
 			mode |= SDHCI_TRNS_READ;
 
-		if (data->blocks > 1)
+		if (data->blocks > 1) {
 			mode |= SDHCI_TRNS_BLK_CNT_EN |
-				SDHCI_TRNS_MULTI | SDHCI_TRNS_ACMD12;
+				SDHCI_TRNS_MULTI;
+			if (ctrlr->caps & DRVR_CAP_AUTO_CMD12)
+				mode |= SDHCI_TRNS_ACMD12;
+		}
 
 		sdhci_writew(sdhci_ctrlr, data->blocks, SDHCI_BLOCK_COUNT);
 
