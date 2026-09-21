@@ -64,53 +64,44 @@ void sdhci_cmd_done(struct sdhci_ctrlr *sdhci_ctrlr, struct mmc_command *cmd)
 static int sdhci_transfer_data(struct sdhci_ctrlr *sdhci_ctrlr,
 	struct mmc_data *data, unsigned int start_addr)
 {
-	uint32_t block_count;
-	uint32_t *buffer;
-	uint32_t *buffer_end;
-	uint32_t ps;
-	uint32_t ps_mask;
-	uint32_t stat;
+	uint32_t *buffer = (uint32_t *)data->dest;
+	uint32_t block_count = 0;
+	uint32_t ready = data->flags == DATA_FLAG_READ ?
+		SDHCI_DATA_AVAILABLE : SDHCI_SPACE_AVAILABLE;
+	uint32_t event = data->flags == DATA_FLAG_READ ?
+		SDHCI_INT_DATA_AVAIL : SDHCI_INT_SPACE_AVAIL;
 	struct stopwatch sw;
 
-	block_count = 0;
-	buffer = (uint32_t *)data->dest;
-	ps_mask = (data->flags & DATA_FLAG_READ)
-		? SDHCI_DATA_AVAILABLE : SDHCI_SPACE_AVAILABLE;
 	stopwatch_init_msecs_expire(&sw, 100);
-	do {
-		/* Stop transfers if there is an error */
-		stat = sdhci_readl(sdhci_ctrlr, SDHCI_INT_STATUS);
-		sdhci_writel(sdhci_ctrlr, stat, SDHCI_INT_STATUS);
+	for (;;) {
+		uint32_t stat = sdhci_readl(sdhci_ctrlr, SDHCI_INT_STATUS);
+
 		if (stat & SDHCI_INT_ERROR) {
-			sdhc_error("Error detected in status(0x%X)!\n", stat);
+			sdhc_error("Error detected in PIO status(0x%X)!\n", stat);
 			return -1;
 		}
-
-		/* Determine if the buffer is ready to move data */
-		ps = sdhci_readl(sdhci_ctrlr, SDHCI_PRESENT_STATE);
-		if (!(ps & ps_mask)) {
-			if (stopwatch_expired(&sw)) {
-				sdhc_error("Transfer data timeout\n");
-				return -1;
+		if (block_count < data->blocks &&
+		    (sdhci_readl(sdhci_ctrlr, SDHCI_PRESENT_STATE) & ready)) {
+			sdhci_writel(sdhci_ctrlr, event, SDHCI_INT_STATUS);
+			for (uint32_t i = 0; i < data->blocksize / 4; i++) {
+				if (data->flags == DATA_FLAG_READ)
+					*buffer++ = sdhci_readl(sdhci_ctrlr, SDHCI_BUFFER);
+				else
+					sdhci_writel(sdhci_ctrlr, *buffer++, SDHCI_BUFFER);
 			}
-			udelay(1);
+			block_count++;
 			continue;
 		}
-
-		/* Transfer a block of data */
-		buffer_end = &buffer[data->blocksize >> 2];
-		if (data->flags == DATA_FLAG_READ)
-			while (buffer_end > buffer)
-				*buffer++ = sdhci_readl(sdhci_ctrlr,
-					SDHCI_BUFFER);
-		else
-			while (buffer_end > buffer)
-				sdhci_writel(sdhci_ctrlr, *buffer++,
-					SDHCI_BUFFER);
-		if (++block_count >= data->blocks)
-			break;
-	} while (!(stat & SDHCI_INT_DATA_END));
-	return 0;
+		if (stat & SDHCI_INT_DATA_END) {
+			sdhci_writel(sdhci_ctrlr, SDHCI_INT_DATA_END, SDHCI_INT_STATUS);
+			return block_count == data->blocks ? 0 : -1;
+		}
+		if (stopwatch_expired(&sw)) {
+			sdhc_error("PIO transfer completion timeout\n");
+			return -1;
+		}
+		udelay(1);
+	}
 }
 
 static int sdhci_send_command_bounced(struct sd_mmc_ctrlr *ctrlr,
@@ -208,7 +199,8 @@ static int sdhci_send_command_bounced(struct sd_mmc_ctrlr *ctrlr,
 			break;
 		}
 
-		if (stat & SDHCI_INT_DATA_AVAIL) {
+		if (cmd->cmdidx == MMC_CMD_AUTO_TUNING_SEQUENCE &&
+		    (stat & SDHCI_INT_DATA_AVAIL)) {
 			sdhci_writel(sdhci_ctrlr, stat, SDHCI_INT_STATUS);
 			return 0;
 		}
