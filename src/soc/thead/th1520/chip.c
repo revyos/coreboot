@@ -1,7 +1,14 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
+#include <console/console.h>
 #include <device/device.h>
 #include <device/mmio.h>
 #include <soc/addressmap.h>
+#include <soc/iopmp.h>
+
+static void th1520_init(void *unused)
+{
+	th1520_iopmp_init();
+}
 
 static void th1520_read_resources(struct device *dev)
 {
@@ -21,5 +28,6 @@ static void th1520_enable(struct device *dev)
 
 struct chip_operations soc_thead_th1520_ops = {
 	.name = "T-Head TH1520",
+	.init = th1520_init,
 	.enable_dev = th1520_enable,
 };

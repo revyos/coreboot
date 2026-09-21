@@ -7,6 +7,7 @@ root = Path(__file__).resolve().parents[2]
 with tempfile.TemporaryDirectory() as temporary:
     work = Path(temporary)
     headers = {
+        "arch/barrier.h": "void mb(void);\n",
         "device/device.h": "#include <types.h>\nstruct device;struct device_operations{void (*read_resources)(struct device*);void (*set_resources)(struct device*);};struct device{struct{int type;}path;struct device_operations *ops;};struct chip_operations{const char *name;void (*init)(void*);void (*enable_dev)(struct device*);};\n#define DEVICE_PATH_CPU_CLUSTER 1\nvoid ram_from_to(struct device*,unsigned,uint64_t,uint64_t);void noop_set_resources(struct device*);\n",
         "bootstate.h": "#define BOOT_STATE_INIT_ENTRY(...)\n",
         "cbfs.h": "#include <types.h>\nvoid *cbfs_map(const char *,size_t *);void cbfs_unmap(void *);\n",
@@ -26,11 +27,13 @@ with tempfile.TemporaryDirectory() as temporary:
     headers["drivers/spi/designware.h"] = (root / "src/include/drivers/spi/designware.h").read_text()
     headers["soc/addressmap.h"] = (root / "src/soc/thead/th1520/include/soc/addressmap.h").read_text()
     headers["soc/cpu.h"] = (root / "src/soc/thead/th1520/include/soc/cpu.h").read_text()
+    headers["soc/iopmp.h"] = (root / "src/soc/thead/th1520/include/soc/iopmp.h").read_text()
     for name, value in headers.items():
         p = work / name
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(value)
     for name, sources in {
+        "iopmp": ["util/thead/tests/iopmp.c"],
         "aon": ["util/thead/tests/aon.c"],
         "cpu-clock": ["util/thead/tests/cpu-clock.c"],
         "spi": ["util/thead/tests/spi.c", "src/drivers/spi/designware/spi.c"],
