@@ -177,6 +177,7 @@ static int sdhci_send_command_bounced(struct sd_mmc_ctrlr *ctrlr,
 		sdhci_writew(sdhci_ctrlr, data->blocks, SDHCI_BLOCK_COUNT);
 
 		if (DMA_AVAILABLE && (ctrlr->caps & DRVR_CAP_AUTO_CMD12)
+			&& !(ctrlr->caps & DRVR_CAP_PIO_ONLY)
 			&& (cmd->cmdidx != MMC_CMD_AUTO_TUNING_SEQUENCE)) {
 			if (sdhci_setup_adma(sdhci_ctrlr, data))
 				return -1;
@@ -526,7 +527,7 @@ static void sdhci_set_ios(struct sd_mmc_ctrlr *ctrlr)
 
 	sdhci_set_uhs_signaling(sdhci_ctrlr, ctrlr->timing);
 
-	if (DMA_AVAILABLE) {
+	if (DMA_AVAILABLE && !(ctrlr->caps & DRVR_CAP_PIO_ONLY)) {
 		if (ctrlr->caps & DRVR_CAP_AUTO_CMD12) {
 			ctrl &= ~SDHCI_CTRL_DMA_MASK;
 			if (ctrlr->caps & DRVR_CAP_DMA_64BIT)

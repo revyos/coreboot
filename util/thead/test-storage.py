@@ -28,6 +28,7 @@ with tempfile.TemporaryDirectory() as temporary:
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(value)
     for name, sources in {
+        "sdhci": ["util/thead/tests/sdhci-test.c"],
         "mmc-partition": ["util/thead/tests/mmc-partition.c"],
     }.items():
         binary = work / name

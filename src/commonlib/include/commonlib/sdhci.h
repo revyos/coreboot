@@ -17,6 +17,7 @@
 #define DRVR_CAP_REG32_RW			0x00400000
 #define DRVR_CAP_SPI				0x00800000
 #define DRVR_CAP_WAIT_SEND_CMD			0x01000000
+#define DRVR_CAP_PIO_ONLY			0x02000000
 
 /* ADMA packet descriptor */
 struct sdhci_adma {
