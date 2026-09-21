@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: GPL-2.0-only
+config DRIVERS_SPI_DESIGNWARE
+	bool
+	help
+	  Polled 8-bit transfers on DesignWare SSI controllers. The platform
+	  supplies chip-select handling, clocks and pad configuration.

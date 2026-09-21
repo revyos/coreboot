@@ -23,11 +23,13 @@ with tempfile.TemporaryDirectory() as temporary:
     }
     for path in ("commonlib/sdhci.h", "commonlib/sd_mmc_ctrlr.h", "commonlib/storage.h"):
         headers[path] = (root / "src/commonlib/include" / path).read_text()
+    headers["drivers/spi/designware.h"] = (root / "src/include/drivers/spi/designware.h").read_text()
     for name, value in headers.items():
         p = work / name
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(value)
     for name, sources in {
+        "spi": ["util/thead/tests/spi.c", "src/drivers/spi/designware/spi.c"],
         "sdhci": ["util/thead/tests/sdhci-test.c"],
         "mmc-partition": ["util/thead/tests/mmc-partition.c"],
     }.items():
