@@ -23,6 +23,12 @@ ramstage-y += chip.c
 ramstage-y += iopmp.c
 ramstage-y += cbmem.c
 ramstage-$(CONFIG_TH1520_AON) += cpu_clock.c aon.c
+ramstage-$(CONFIG_TH1520_PAYLOAD_FDT) += payload_fdt.c
+ifeq ($(CONFIG_TH1520_PAYLOAD_FDT),y)
+cbfs-files-y += fallback/DTB
+fallback/DTB-file := $(call strip_quotes,$(CONFIG_TH1520_PAYLOAD_DTB))
+fallback/DTB-type := raw
+endif
 ifeq ($(CONFIG_TH1520_AON),y)
 cbfs-files-y += fallback/aon
 fallback/aon-file := $(call strip_quotes,$(CONFIG_TH1520_AON_FILE))

@@ -3,7 +3,8 @@ if BOARD_MILKV_MELES
 config BOARD_SPECIFIC_OPTIONS
 	def_bool y
 	select SOC_THEAD_TH1520
-	select BOARD_ROMSIZE_KB_1024
+	select BOARD_ROMSIZE_KB_1024 if !MELES_NORMAL_FIRMWARE
+	select BOARD_ROMSIZE_KB_2048 if MELES_NORMAL_FIRMWARE
 	select MISSING_BOARD_RESET
 
 config MAINBOARD_DIR
@@ -12,9 +13,17 @@ config MAINBOARD_DIR
 config MAINBOARD_PART_NUMBER
 	default "Meles"
 
+config MELES_NORMAL_FIRMWARE
+	bool "Build the full EDK2 storage image"
+	help
+	  Use a 2 MiB flash layout for the normal EDK2 payload and AON.
+	  This image is for SPI or eMMC; RAM recovery uses the 1 MiB layout.
+
 config FMDFILE
+	default "src/mainboard/milkv/meles/board-normal.fmd" if MELES_NORMAL_FIRMWARE
 	default "src/mainboard/milkv/meles/board.fmd"
 
 config HEAP_SIZE
+	default 0x80000 if TH1520_PAYLOAD_FDT
 	default 0x10000
 endif

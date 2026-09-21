@@ -55,7 +55,7 @@ config OPENSBI_PLATFORM
 	default "generic"
 
 config OPENSBI_TEXT_START
-	default 0
+	default 0x80000000
 
 config OPENSBI_FW_DYNAMIC_BOOT_HART
 	default -1
@@ -90,6 +90,14 @@ config TH1520_BOOT_SPI
 config TH1520_BOOT_EMMC
 	bool "eMMC boot0"
 endchoice
+
+config TH1520_PAYLOAD_FDT
+	bool "Pass a board DTB to the OpenSBI payload"
+	depends on RISCV_OPENSBI
+
+config TH1520_PAYLOAD_DTB
+	string "Payload DTB path"
+	depends on TH1520_PAYLOAD_FDT
 
 config TH1520_STORAGE_TEST
 	bool "Read-only storage checks during RAM bring-up"
