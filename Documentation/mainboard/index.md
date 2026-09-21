@@ -282,6 +282,14 @@ T470s/T480/T480s/T580/X280 <lenovo/skylake.md>
 LT1000 <libretrend/lt1000.md>
 ```
 
+## Milk-V
+
+```{toctree}
+:maxdepth: 1
+
+Meles <milkv/meles.md>
+```
+
 ## MSI
 
 ```{toctree}
@@ -366,6 +374,14 @@ RK9 Flash Header <roda/rk9/flash_header.md>
 :maxdepth: 1
 
 SiFive HiFive Unleashed <sifive/hifive-unleashed.md>
+```
+
+## Sipeed
+
+```{toctree}
+:maxdepth: 1
+
+Lichee Pi 4A RAM recovery <sipeed/lpi4a-recovery.md>
 ```
 
 ## Star Labs Systems
