@@ -628,7 +628,7 @@ int spi_flash_probe(unsigned int bus, unsigned int cs, struct spi_flash *flash)
 	printk(BIOS_INFO,
 	       "SF: Detected %02x %04x with sector size 0x%x, total 0x%x%s\n",
 		flash->vendor, flash->model, flash->sector_size, flash->size, mode_string);
-	if (bus == CONFIG_BOOT_DEVICE_SPI_FLASH_BUS
+	if (CONFIG(BOOT_DEVICE_SPI_FLASH) && bus == CONFIG_BOOT_DEVICE_SPI_FLASH_BUS
 			&& flash->size != CONFIG_ROM_SIZE) {
 		printk(BIOS_ERR, "SF size 0x%x does not correspond to"
 			" CONFIG_ROM_SIZE 0x%x!!\n", flash->size,
