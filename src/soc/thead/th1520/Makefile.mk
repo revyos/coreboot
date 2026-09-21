@@ -15,6 +15,9 @@ all-y += uart.c
 all-y += timer.c
 all-y += cache.c
 all-y += boot_device.c
+all-y += spi.c
+all-y += emmc.c
+bootblock-$(CONFIG_TH1520_STORAGE_TEST) += storage_test.c
 ramstage-y += chip.c
 ramstage-y += cbmem.c
 endif

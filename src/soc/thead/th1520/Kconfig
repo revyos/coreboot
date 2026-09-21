@@ -15,6 +15,15 @@ config SOC_THEAD_TH1520
 	select UART_OVERRIDE_REFCLK
 	select RISCV_HAS_OPENSBI
 	select DRIVERS_RISCV_CLINT
+	select BOOT_DEVICE_NOT_SPI_FLASH
+	select SPI_FLASH
+	select SPI_FLASH_DONT_INCLUDE_ALL_DRIVERS
+	select SPI_FLASH_WINBOND
+	select SPI_FLASH_GIGADEVICE
+	select DRIVERS_SPI_DESIGNWARE
+	select COMMONLIB_STORAGE
+	select COMMONLIB_STORAGE_MMC
+	select SDHCI_CONTROLLER
 
 if SOC_THEAD_TH1520
 
@@ -50,5 +59,22 @@ config OPENSBI_TEXT_START
 
 config OPENSBI_FW_DYNAMIC_BOOT_HART
 	default -1
+
+choice
+	prompt "TH1520 boot medium"
+	default TH1520_BOOT_AUTO
+config TH1520_BOOT_AUTO
+	bool "Follow BootROM boot straps"
+config TH1520_BOOT_RAM
+	bool "RAM download image"
+config TH1520_BOOT_SPI
+	bool "SPI NOR"
+config TH1520_BOOT_EMMC
+	bool "eMMC boot0"
+endchoice
+
+config TH1520_STORAGE_TEST
+	bool "Read-only storage checks during RAM bring-up"
+	default n
 
 endif
