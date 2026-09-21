@@ -347,6 +347,11 @@ int mmc_set_bus_width(struct storage_media *media)
 	ALLOC_CACHE_ALIGN_BUFFER(unsigned char, ext_csd, EXT_CSD_SIZE);
 	ALLOC_CACHE_ALIGN_BUFFER(unsigned char, test_csd, EXT_CSD_SIZE);
 
+	/* Compare candidate widths against valid data read at the current width. */
+	err = mmc_send_ext_csd(ctrlr, ext_csd);
+	if (err)
+		return err;
+
 	/* Set the bus width */
 	err = 0;
 	for (width = EXT_CSD_BUS_WIDTH_8; width >= 0; width--) {
