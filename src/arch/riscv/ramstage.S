@@ -35,6 +35,9 @@ _start:
 	#NOTE a1 contains FDT and should not be cluttered above
 	call hls_init
 
+	# Finish the cache transition on every hart before secondary harts park.
+	call exit_car
+
 	li   a0, CONFIG_RISCV_WORKING_HARTID
 	call smp_pause
 
@@ -45,7 +48,6 @@ _start:
 	# clear any pending interrupts
 	csrwi mip, 0
 
-	call exit_car
 	# set up the mstatus register
 	call mstatus_init
 	tail main
