@@ -8,6 +8,7 @@ import subprocess
 import struct
 
 parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--board", choices=("meles", "lpi4a"), default="meles")
 parser.add_argument("--profile", choices=("recovery", "normal"), default="recovery")
 parser.add_argument("--aon", type=Path, help="board-configured AON firmware for 1.848 GHz")
 parser.add_argument("--edk2-fd", required=True, type=Path)
@@ -19,15 +20,28 @@ parser.add_argument("--jobs", default="8")
 args = parser.parse_args()
 root = Path(__file__).resolve().parents[2]
 if args.boot_medium is None:
-    args.boot_medium = "ram" if args.profile == "recovery" else "spi"
+    args.boot_medium = ("ram" if args.profile == "recovery" else
+                        "emmc" if args.board == "lpi4a" else "spi")
 if args.profile == "normal" and args.boot_medium == "ram":
     parser.error("normal firmware exceeds SRAM; use the RAM recovery profile")
 if args.profile == "normal" and args.aon is None:
     parser.error("normal firmware requires --aon for platform power management")
 suffix = "" if args.boot_medium == "ram" else "-" + args.boot_medium
-output = root / ("build/" + args.profile + suffix)
+build_name = ((args.board + "-" if args.board != "meles" else "") +
+              args.profile + suffix)
+output = root / "build" / build_name
 output.mkdir(parents=True, exist_ok=True)
 fd, opensbi, dtb = [p.resolve(strict=True) for p in (args.edk2_fd, args.opensbi, args.dtb)]
+compatible = {"meles": "milkv,meles",
+              "lpi4a": "sipeed,lichee-pi-4a"}[args.board]
+try:
+    compatibles = subprocess.check_output(
+        ["fdtget", "-t", "s", str(dtb), "/", "compatible"],
+        text=True).split()
+except (OSError, subprocess.CalledProcessError):
+    parser.error("cannot read the payload DTB root compatible property")
+if compatible not in compatibles:
+    parser.error(f"payload DTB is not compatible with {args.board}")
 if fd.stat().st_size != 4 * 1024 * 1024:
     parser.error("expected the 4 MiB TH1520 EDK2 firmware volume")
 # Load the existing relocatable FW_DYNAMIC binary in coreboot's reserved
@@ -64,9 +78,10 @@ SECTIONS {{
 
 payload = wrap_binary(fd, "edk2", 0x20000000, fd.stat().st_size)
 opensbi = wrap_binary(opensbi, "opensbi", 0x80000000, footprint)
-config = root / ("build/" + args.profile + suffix + ".config")
+config = root / "build" / (build_name + ".config")
 template = "recovery" if args.profile == "recovery" else "edk2"
-text = (root / ("configs/config.milkv_meles_" + template)).read_text()
+board_config = ("milkv_meles" if args.board == "meles" else "sipeed_lpi4a")
+text = (root / ("configs/config." + board_config + "_" + template)).read_text()
 if args.aon is not None:
     aon = args.aon.resolve(strict=True)
     blob = aon.read_bytes()
@@ -75,7 +90,9 @@ if args.aon is not None:
         parser.error("AON input must contain a valid board-configured image")
     text += "CONFIG_TH1520_AON=y\n"
     args.aon = aon
-text = text.replace("CONFIG_TH1520_BOOT_" + ("RAM" if template == "recovery" else "SPI") + "=y",
+default_medium = ("RAM" if template == "recovery" else
+                  "EMMC" if args.board == "lpi4a" else "SPI")
+text = text.replace("CONFIG_TH1520_BOOT_" + default_medium + "=y",
                     "CONFIG_TH1520_BOOT_" + args.boot_medium.upper() + "=y")
 inputs = [("OPENSBI_BLOB_PATH", opensbi), ("TH1520_PAYLOAD_DTB", dtb),
           ("PAYLOAD_FILE", payload)]
@@ -98,7 +115,7 @@ image = output / "coreboot.rom"
 size = image.stat().st_size
 if args.boot_medium == "ram" and size > 0x120000:
     raise SystemExit(f"RAM recovery image exceeds BootROM limit: {size} bytes")
-limit = 0x400000 if args.boot_medium == "emmc" else 0x800000
+limit = 0x3fe000 if args.boot_medium == "emmc" else 0x7c0000
 if args.boot_medium != "ram" and size > limit:
     raise SystemExit(f"storage firmware exceeds target capacity: {size} bytes")
 print(f"{args.profile.capitalize()} image ({args.boot_medium}): {image} ({size} bytes)")

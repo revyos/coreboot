@@ -1,0 +1,3 @@
+# SPDX-License-Identifier: GPL-2.0-only
+config BOARD_SIPEED_LPI4A
+	bool "Lichee Pi 4A"

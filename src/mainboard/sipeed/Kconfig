@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: GPL-2.0-only
+if VENDOR_SIPEED
+choice
+	prompt "Mainboard model"
+source "src/mainboard/sipeed/*/Kconfig.name"
+endchoice
+source "src/mainboard/sipeed/*/Kconfig"
+config MAINBOARD_VENDOR
+	default "Sipeed"
+endif

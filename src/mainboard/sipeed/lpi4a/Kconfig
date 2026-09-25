@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: GPL-2.0-only
+if BOARD_SIPEED_LPI4A
+config BOARD_SPECIFIC_OPTIONS
+	def_bool y
+	select SOC_THEAD_TH1520
+	select BOARD_ROMSIZE_KB_1024 if !LPI4A_NORMAL_FIRMWARE
+	select BOARD_ROMSIZE_KB_2048 if LPI4A_NORMAL_FIRMWARE
+	select MISSING_BOARD_RESET
+
+config MAINBOARD_DIR
+	default "sipeed/lpi4a"
+
+config MAINBOARD_PART_NUMBER
+	default "Lichee Pi 4A"
+
+config LPI4A_NORMAL_FIRMWARE
+	bool "Build the full EDK2 storage image"
+	help
+	  Use a 2 MiB eMMC boot0 image for normal EDK2 and AON.
+	  RAM recovery uses the separate 1 MiB layout.
+
+config FMDFILE
+	default "src/mainboard/sipeed/lpi4a/board-normal.fmd" if LPI4A_NORMAL_FIRMWARE
+	default "src/mainboard/sipeed/lpi4a/board.fmd"
+
+config HEAP_SIZE
+	default 0x80000 if TH1520_PAYLOAD_FDT
+	default 0x10000
+endif
