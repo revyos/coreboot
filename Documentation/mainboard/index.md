@@ -477,3 +477,11 @@ X2F-N100 <topton/adl/x2f-n100.md>
 
 Squared <up/squared/index.md>
 ```
+
+## Zhihe
+
+```{toctree}
+:maxdepth: 1
+
+A210 DEV SRAM diagnostic <zhihe/a210-dev.md>
+```
