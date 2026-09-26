@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: GPL-2.0-only
+if VENDOR_ZHIHE
+choice
+	prompt "Mainboard model"
+source "src/mainboard/zhihe/*/Kconfig.name"
+endchoice
+source "src/mainboard/zhihe/*/Kconfig"
+config MAINBOARD_VENDOR
+	default "Zhihe"
+endif

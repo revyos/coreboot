@@ -1,0 +1,49 @@
+# SPDX-License-Identifier: GPL-2.0-only
+if BOARD_ZHIHE_MELONPI
+
+config BOARD_SPECIFIC_OPTIONS
+	def_bool y
+	select SOC_ZHIHE_A210
+	select MB_COMPRESS_RAMSTAGE_LZ4
+	select BOARD_ROMSIZE_KB_2048 if A210_BOOT_RAM
+	select BOARD_ROMSIZE_KB_2048 if A210_STORAGE_IMAGE
+	select BOARD_ROMSIZE_KB_256 if !A210_FIRMWARE && !A210_BOOTSTRAP
+	select MISSING_BOARD_RESET
+
+config A210_STORAGE_IMAGE
+	def_bool (A210_FIRMWARE || A210_BOOTSTRAP) && !A210_BOOT_RAM
+
+config MAINBOARD_DIR
+	default "zhihe/melonpi"
+
+config MAINBOARD_PART_NUMBER
+	default "Melon Pi V1" if MELONPI_V1
+	default "Melon Pi V2" if MELONPI_V2
+
+choice
+	prompt "Melon Pi carrier revision"
+	default MELONPI_V2
+	help
+	  Select the carrier explicitly. The module ADC straps describe
+	  the memory configuration, not the carrier revision.
+
+config MELONPI_V1
+	bool "V1"
+
+config MELONPI_V2
+	bool "V2"
+
+endchoice
+
+config FMDFILE
+	default "src/mainboard/zhihe/melonpi/ram.fmd" if A210_BOOT_RAM
+	default "src/mainboard/zhihe/melonpi/board.fmd" if A210_STORAGE_IMAGE
+
+# Leave room for the BootROM header inside the 2 MiB OCRAM.
+config ROM_SIZE
+	default 0x180000 if A210_BOOT_RAM
+
+config COREBOOT_ROMSIZE_KB
+	default 1536 if A210_BOOT_RAM
+
+endif

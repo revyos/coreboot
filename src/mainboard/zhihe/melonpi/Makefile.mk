@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: GPL-2.0-only
+bootblock-y += fan.c
+bootblock-y += power.c
+bootblock-y += board.c
+bootblock-y += romstage.c
+bootblock-$(CONFIG_A210_DDR_TEST) += memory.c
+ramstage-y += mainboard.c
+ramstage-y += power.c
+ramstage-$(CONFIG_A210_FIRMWARE) += payload_fdt.c
