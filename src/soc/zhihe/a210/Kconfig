@@ -1,0 +1,84 @@
+# SPDX-License-Identifier: GPL-2.0-only
+config SOC_ZHIHE_A210
+	bool
+	select ARCH_RISCV_RV64
+	select ARCH_RISCV_S
+	select ARCH_RISCV_U
+	select ARCH_RISCV_PMP
+	select ARCH_BOOTBLOCK_RISCV
+	select ARCH_VERSTAGE_RISCV
+	select ARCH_ROMSTAGE_RISCV
+	select ARCH_RAMSTAGE_RISCV
+	select HAVE_UART_SPECIAL
+	select UART_OVERRIDE_REFCLK
+	select DRIVERS_RISCV_CLINT
+	select DRIVERS_I2C_DESIGNWARE
+	select RISCV_HAS_OPENSBI
+	select FLATTENED_DEVICE_TREE
+if SOC_ZHIHE_A210
+config A210_BOOTSTRAP
+	bool "Build the small BootROM entry stage"
+	select A210_EMMC if !A210_BOOT_RAM
+	select BOOT_DEVICE_NOT_SPI_FLASH
+	default n
+
+config A210_FIRMWARE
+	bool "Build complete coreboot firmware"
+	select A210_EMMC
+	select A210_DDR_TEST
+	select BOOT_DEVICE_NOT_SPI_FLASH
+	default n
+
+config A210_BOOT_RAM
+	bool "Receive the complete firmware through BootROM USB"
+	default n
+
+config A210_AON_FILE
+	string "A210 AON firmware binary"
+	depends on A210_FIRMWARE
+
+config A210_PAYLOAD_DTB
+	string "Payload device tree"
+	depends on A210_FIRMWARE
+
+config OPENSBI_PLATFORM
+	default "generic"
+config OPENSBI_TEXT_START
+	default 0x80000000
+config OPENSBI_FW_DYNAMIC_BOOT_HART
+	default 0
+config A210_EMMC
+	bool
+	select COMMONLIB_STORAGE
+	select COMMONLIB_STORAGE_MMC
+	select SDHCI_CONTROLLER
+
+config A210_EMMC_TEST
+	bool "Read-only eMMC diagnostics"
+	select A210_EMMC
+	default n
+
+config A210_DDR_TEST
+	bool "Include DDR training in the BRAM diagnostic"
+	default n
+	help
+	  Includes dual-channel LPDDR4X training and memory tests.
+	  This image requires JTAG loading; it exceeds the initial
+	  BootROM USB download budget.
+config DRIVERS_I2C_DESIGNWARE_CLOCK_MHZ
+	default 24
+config SEPARATE_ROMSTAGE
+	default n
+config MEMLAYOUT_LD_FILE
+	default "src/soc/zhihe/a210/memlayout.ld"
+config RISCV_ARCH
+	default "rv64imafdc"
+config RISCV_ABI
+	default "lp64d"
+config RISCV_CODEMODEL
+	default "medany"
+config MAX_CPUS
+	default 1
+config RISCV_WORKING_HARTID
+	default 0
+endif
