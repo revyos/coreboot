@@ -1,0 +1,146 @@
+/* SPDX-License-Identifier: GPL-2.0-only */
+#ifndef SOC_ZHIHE_A210_DDR_REGS_H
+#define SOC_ZHIHE_A210_DDR_REGS_H
+
+#include <soc/addressmap.h>
+
+#define DDRC_MSTR 0x000
+#define DDRC_STAT 0x004
+#define DDRC_MRCTRL0 0x010
+#define DDRC_MRCTRL1 0x014
+#define DDRC_MRSTAT 0x018
+#define DDRC_DERATEEN 0x020
+#define DDRC_DERATEINT 0x024
+#define DDRC_DERATECTL 0x02c
+#define DDRC_PWRCTL 0x030
+#define DDRC_PWRTMG 0x034
+#define DDRC_HWLPCTL 0x038
+#define DDRC_RFSHCTL0 0x050
+#define DDRC_RFSHCTL1 0x054
+#define DDRC_RFSHCTL3 0x060
+#define DDRC_RFSHTMG 0x064
+#define DDRC_RFSHTMG1 0x068
+#define DDRC_CRCPARCTL0 0x0c0
+#define DDRC_INIT0 0x0d0
+#define DDRC_INIT1 0x0d4
+#define DDRC_INIT2 0x0d8
+#define DDRC_INIT3 0x0dc
+#define DDRC_INIT4 0x0e0
+#define DDRC_INIT5 0x0e4
+#define DDRC_INIT6 0x0e8
+#define DDRC_INIT7 0x0ec
+#define DDRC_DIMMCTL 0x0f0
+#define DDRC_RANKCTL 0x0f4
+#define DDRC_RANKCTL1 0x0f8
+#define DDRC_DRAMTMG0 0x100
+#define DDRC_DRAMTMG1 0x104
+#define DDRC_DRAMTMG2 0x108
+#define DDRC_DRAMTMG3 0x10c
+#define DDRC_DRAMTMG4 0x110
+#define DDRC_DRAMTMG5 0x114
+#define DDRC_DRAMTMG6 0x118
+#define DDRC_DRAMTMG7 0x11c
+#define DDRC_DRAMTMG8 0x120
+#define DDRC_DRAMTMG12 0x130
+#define DDRC_DRAMTMG13 0x134
+#define DDRC_DRAMTMG14 0x138
+#define DDRC_ZQCTL0 0x180
+#define DDRC_ZQCTL1 0x184
+#define DDRC_ZQCTL2 0x188
+#define DDRC_DFITMG0 0x190
+#define DDRC_DFITMG1 0x194
+#define DDRC_DFILPCFG0 0x198
+#define DDRC_DFIUPD0 0x1a0
+#define DDRC_DFIUPD1 0x1a4
+#define DDRC_DFIUPD2 0x1a8
+#define DDRC_DFIMISC 0x1b0
+#define DDRC_DFITMG2 0x1b4
+#define DDRC_DFISTAT 0x1bc
+#define DDRC_DBICTL 0x1c0
+#define DDRC_DFIPHYMSTR 0x1c4
+#define DDRC_ADDRMAP0 0x200
+#define DDRC_ADDRMAP1 0x204
+#define DDRC_ADDRMAP2 0x208
+#define DDRC_ADDRMAP3 0x20c
+#define DDRC_ADDRMAP4 0x210
+#define DDRC_ADDRMAP5 0x214
+#define DDRC_ADDRMAP6 0x218
+#define DDRC_ADDRMAP7 0x21c
+#define DDRC_ADDRMAP9 0x224
+#define DDRC_ADDRMAP10 0x228
+#define DDRC_ADDRMAP11 0x22c
+#define DDRC_ODTCFG 0x240
+#define DDRC_ODTMAP 0x244
+#define DDRC_SCHED 0x250
+#define DDRC_SCHED1 0x254
+#define DDRC_PERFHPR1 0x25c
+#define DDRC_PERFLPR1 0x264
+#define DDRC_PERFWR1 0x26c
+#define DDRC_SCHED3 0x270
+#define DDRC_SCHED4 0x274
+#define DDRC_DBG0 0x300
+#define DDRC_DBG1 0x304
+#define DDRC_DBGCMD 0x30c
+#define DDRC_SWCTL 0x320
+#define DDRC_SWSTAT 0x324
+#define DDRC_SWCTLSTATIC 0x328
+#define DDRC_POISONCFG 0x36c
+#define DDRC_PCCFG 0x400
+#define DDRC_PCFGR_0 0x404
+#define DDRC_PCFGW_0 0x408
+#define DDRC_PCTRL_0 0x490
+
+#define DDR_SYS_CONFIG 0x00
+#define DDR_PHY_RESET_N (1U << 2)
+#define DDR_APB_RESET_N (1U << 1)
+#define DDR_CTRL_RESET_N (1U << 3)
+#define DDR_AXI_RESET_N (1U << 4)
+#define DDR_MRR_DATA0 0x20
+#define DDR_MR_BUSY (1U << 0)
+#define DDR_MR_RANK_MASK (3U << 4)
+#define DDR_MR_RANK0 (1U << 4)
+#define DDR_MR_READ (1U << 0)
+#define DDR_MR_TRIGGER (1U << 31)
+#define DDR_MR_ADDRESS_SHIFT 8
+#define AON_DDR_POWER_OK (A210_AON_SYSREG_BASE + 0x10c)
+#define AON_DDR_POWER_OK_BOTH 3
+#define DDR_PLL_CFG0 0x08
+#define DDR_PLL_CFG1 0x0c
+#define DDR_PLL_STATUS 0x18
+#define DDR_PLL_FRAC_MASK 0xffffff
+#define DDR_PLL_RESET (1U << 30)
+#define DDR_PLL_LOCK (1U << 0)
+#define DDR_PLL_CLOCK_ENABLE (1U << 16)
+#define DDR_PLL_4266_CFG0 0x01310a02
+#define DDR_PLL_4266_FRAC 0x00400000
+#define SLC_CLOCK_CONTROL(ch) (0x40 + 4 * (ch))
+#define DDR_CLOCK_CONTROL(ch) (0x48 + 4 * (ch))
+#define SLC_AXI_CLOCK_ENABLE (1U << 9)
+#define SLC_SOFT_RESET_N (1U << 8)
+#define DDR_SOFT_RESET_N (1U << 7)
+#define SLC_SYSTEM_RESET 0x00
+#define SLC_SYSTEM_CONFIG 0x04
+#define SLC_WRAP_RESET_N 3
+#define SLC_CSR_WRITE_ENABLE (1U << 5)
+#define SLC_PATH_ENABLE (1U << 4)
+#define SLC_AXI_FIFO_ENABLE (1U << 1)
+#define SLC_TRANSACTION_ENABLE 0x00
+#define SLC_SRAM_CONTROL 0x20
+#define SLC_SRAM_ADDRESS_MASK 0x24
+#define SLC_SRAM_ADDRESS_BASE 0x28
+#define SLC_SRAM_WAYS 0x2c
+#define SLC_SRAM_ALL_WAYS 0x0f
+#define SLC_SRAM_INDEX_MASK 0x3fff
+#define SLC_SRAM_ENABLE ((SLC_SRAM_ALL_WAYS << 16) | 1)
+#define SLC_INIT_COMMAND 0x100
+#define SLC_INIT_STATUS 0x104
+#define SLC_INIT_TAG 0
+#define SLC_INIT_DATA (1U << 16)
+#define SLC_INIT_BUSY (1U << 0)
+#define PHY_UCT_STATUS 0xd0004
+#define PHY_UCT_ACK 0xd0031
+#define PHY_UCT_MESSAGE 0xd0032
+#define PHY_UCT_DATA 0xd0034
+#define PHY_UCT_BUSY (1U << 0)
+
+#endif

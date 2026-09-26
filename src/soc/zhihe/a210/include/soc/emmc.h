@@ -1,0 +1,31 @@
+/* SPDX-License-Identifier: GPL-2.0-only */
+#ifndef SOC_ZHIHE_A210_EMMC_H
+#define SOC_ZHIHE_A210_EMMC_H
+
+#define DWC_PHY_CONFIG 0x300
+#define DWC_PHY_CMD_PAD 0x304
+#define DWC_PHY_DATA_PAD 0x306
+#define DWC_PHY_CLK_PAD 0x308
+#define DWC_PHY_STROBE_PAD 0x30a
+#define DWC_PHY_RESET_PAD 0x30c
+#define DWC_PHY_SDCLK_DELAY_CONFIG 0x31d
+#define DWC_PHY_SDCLK_DELAY 0x31e
+#define DWC_PHY_DLL_CONTROL 0x324
+#define DWC_PHY_DLL_CONFIG1 0x325
+#define DWC_PHY_DLL_CONFIG2 0x326
+#define DWC_PHY_DLL_DELAY_CONFIG 0x328
+#define DWC_EMMC_CONTROL 0x52c
+#define DWC_PHY_RESET_N (1U << 0)
+#define DWC_PHY_PAD_DRIVE ((12U << 16) | (12U << 20))
+#define DWC_PHY_PAD_RX_3V3 2
+#define DWC_PHY_PAD_PULL_UP (1U << 3)
+#define DWC_PHY_PAD_PULL_DOWN (2U << 3)
+#define DWC_PHY_PAD_SLEW ((3U << 5) | (3U << 9))
+#define DWC_PHY_DELAY_UPDATE (1U << 4)
+#define DWC_PHY_SDR_DELAY_TAPS 50
+#define DWC_PHY_DLL_START_POINT 10
+#define DWC_PHY_DLL_WAIT_CYCLES 5
+#define DWC_PHY_DLL_ENABLE (1U << 0)
+#define DWC_EMMC_CARD (1U << 0)
+
+#endif
