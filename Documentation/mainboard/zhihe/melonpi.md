@@ -55,7 +55,7 @@ Build the RAM firmware from the coreboot directory:
 python3 util/zhihe/build-firmware.py \
   --board melonpi-v2 \
   --boot-medium ram \
-  --aon /path/to/a210-aon.bin \
+  --scmi /path/to/zephyr.bin \
   --opensbi /path/to/fw_dynamic.elf \
   --payload build/sbi-test.elf \
   --dtb /path/to/a210-melonpi-v2.dtb \
@@ -66,26 +66,31 @@ Use `--boot-medium emmc` and a separate output directory to build
 `melonpi-v2-coreboot-boot0.bin`. The RAM profile uses a 1.5 MiB CBFS image;
 the eMMC profile uses 2 MiB. An image that does not fit fails the build.
 
-## AON ownership
+## SCMI ownership
 
-Pass the A210 E902 image with `--aon`. The build stores it in CBFS;
-ramstage copies it to the dedicated 64 KiB AON SRAM, programs the
-reset vector, releases E902 and waits for the ready marker. The tested
-image is 52,848 bytes, with SHA-256:
+Pass the A210 E902 Zephyr SCMI image with `--scmi`. Ramstage stores it in
+CBFS as `fallback/scmi`, loads it at 0x308f8000 and releases E902. The
+image must fit in 63 KiB; the SCMI request and notification channels
+occupy 256 bytes each at 0x30907c00 and 0x30907d00. Startup waits for a successful SCMI Base version
+query, not a vendor AON ready marker.
 
-```text
-d24a9a6c8aab1f3d3049211b6509a503172c381778dcf1c9f23291e5082e999c
-```
+Before releasing E902, coreboot prepares the secondary CPU supplies and
+power domains, raises CPU/SRAM supplies to 1 V, and selects the validated
+1.896 GHz CPU operating point. It verifies the PMIC I2C bus is idle,
+masks its interrupts and disables the controller before Zephyr adopts it. Subsequent CPU
+performance and PMIC changes belong to SCMI; coreboot does not issue the
+old AON voltage RPC or rewrite CPU PLLs after the handoff.
 
-The image was extracted from `/lib/firmware/a210-aon.bin` in the
-vendor openEuler image. Supply it separately; it is not bundled with
-coreboot. TH1520 AON images are not interchangeable with this image.
+An initialized eMMC controller stops its card clock while Zephyr sets up
+its parent clock. Once SCMI responds, coreboot queries the new reference
+rate and reapplies the SDHCI divider before reading more CBFS data.
+EDK2 and Linux must attach to the running service without overwriting
+SRAM or resetting E902. The Linux DT and firmware resource IDs must match.
 
-Boot firmware owns AON loading and startup. Linux must attach to the
-running AON through its mailbox without overwriting SRAM or resetting
-E902. It does not need an AON image in the root filesystem. The A210
-PM service provides synchronous voltage set/get RPCs. It does not
-implement the CPU frequency service listed in the SDK's AVFS enum.
+A RAM boot completed Zephyr initialization, answered SCMI Base 2.0 and
+reached OpenSBI. Complete OS handoff, runtime and reset validation remain
+pending. The earlier AON-based checks below apply to the previous boot
+chain.
 
 ## RAM startup
 
@@ -172,21 +177,21 @@ secondary hart before using a C stack.
 Coreboot prepares the C920 supply and the secondary PPU/BPC/PCU power
 domains while keeping secondary resets asserted. OpenSBI HSM installs
 each reset vector and releases that hart on its first start. Later
-stop/start cycles use parking and IPIs. After AON startup, coreboot
-raises the C908 SRAM, C908 CPU and C920 CPU rails to 1 V through PM
-RPCs and verifies each voltage. It then selects the independent TOP
-clock while reprogramming each CPU PLL to 1.896 GHz. Lock, divider and
-mux checks precede an independent hardware frequency measurement.
-Both clusters measured 1,896,000 kHz on hardware. Peripheral PLLs are
-unchanged. A working cooling fan or heatsink is required.
+stop/start cycles use parking and IPIs. Before E902 startup, coreboot
+raises the C908 SRAM, C908 CPU and C920 CPU rails to 1 V and verifies
+each voltage. It selects the independent TOP clock while reprogramming
+each CPU PLL to 1.896 GHz. Lock, divider and mux checks precede an
+independent hardware frequency measurement. The earlier boot chain
+measured 1,896,000 kHz on both clusters; the SCMI handoff still requires
+hardware validation. A working cooling fan or heatsink is required.
 
 SY70209 BUCK6/7 encoding is 600 mV plus 12.5 mV per step. SY70300
 BUCK2 supplies C920 CPU_P at 450 mV plus 5 mV per step. The board code
 raises rails below the 800 mV boot voltage, preserves higher valid
 settings up to 1 V and verifies enable/voltage registers. Definitions
 come from the A210 AON SDK's PMIC drivers and rail mapping. These early
-I2C accesses finish before AON starts; subsequent voltage changes use
-the AON mailbox so both processors do not drive the PMIC bus.
+I2C accesses finish before E902 starts; subsequent voltage changes use
+SCMI so both processors do not drive the PMIC bus.
 
 DDR settings and training data come from A210 vendor U-Boot revision
 `7f63f1980d9c`, under `board/zhihe/a210-evb/ddr/`. GPL notices are
@@ -217,7 +222,8 @@ DQ permutation and payload DTB preparation.
 
 ## Hardware checks
 
-The following checks passed on the 8 GiB board:
+The following checks passed on the 8 GiB board with the earlier
+vendor-AON boot chain:
 
 - Native BootROM USB startup and the second OCRAM RAM download.
 - Complete 2 MiB OCRAM address and inverse-address patterns.
@@ -259,8 +265,8 @@ HDMI control path unavailable.
 
 Ramstage powers the VO domain through PCU/BPC and installs the vendor
 VO IOPMP device entries for display DMA. EDK2 owns the DC8200, HDMI
-controller, DDC pins and output divider. It retains the DPU PLL's
-power-on frequency. The GPU domain is independent of this scanout path.
+controller and DDC pins. It requests output rates through SCMI; Zephyr
+owns the divider and parent selection. The GPU domain is independent of this scanout path.
 
 A full boot0 restart reached F2 setup on serial and HDMI simultaneously.
 The capture sink selected 1920x1080 at 148.5 MHz through EDID. Linux
