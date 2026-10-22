@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 #include <console/console.h>
 #include <device/device.h>
-#include <soc/aon.h>
+#include <soc/e902.h>
 #include <soc/clock.h>
 #include <soc/early.h>
 #include "board.h"
@@ -30,8 +30,8 @@ static void mainboard_init(void *unused)
 	    a210_set_cpu_clock(1, MELONPI_CPU_BOOT_MHZ))
 		die("Melon Pi: CPU clock initialization failed\n");
 	/* E902 adopts the initialized resources and owns subsequent changes. */
-	if (a210_aon_start())
-		die("Melon Pi: AON startup failed\n");
+	if (a210_e902_start())
+		die("Melon Pi: SCMI firmware startup failed\n");
 }
 
 struct chip_operations mainboard_ops = {

@@ -3,6 +3,8 @@
 #include <soc/early.h>
 #include <soc/addressmap.h>
 #include <soc/gpio.h>
+#include <delay.h>
+#include <timer.h>
 
 #define AON_CLOCK_CONFIG (A210_AON_CLOCK_BASE + 0x00)
 #define AON_CLOCK_GATE (A210_AON_CLOCK_BASE + 0x04)
@@ -20,6 +22,38 @@
 #define AON_PAD_SLEW (1U << 8)
 #define AON_PAD_SCHMITT (1U << 7)
 #define AON_PAD_DRIVE_25MA 15
+#define IC_INTR_MASK 0x30
+#define IC_CLR_INTR 0x40
+#define IC_ENABLE 0x6c
+#define IC_STATUS 0x70
+#define IC_TXFLR 0x74
+#define IC_RXFLR 0x78
+#define IC_DMA_CR 0x88
+#define IC_ENABLE_STATUS 0x9c
+#define IC_ACTIVE ((1U << 5) | 1U)
+
+int a210_pmic_i2c_release(void)
+{
+	void *base = (void *)A210_AON_I2C_BASE;
+	struct stopwatch timeout;
+
+	/* Do not hand off an outstanding transaction or discard unread data. */
+	if ((read32(base + IC_STATUS) & IC_ACTIVE) ||
+	    read32(base + IC_TXFLR) || read32(base + IC_RXFLR) ||
+	    read32(base + IC_DMA_CR))
+		return -1;
+	/* The polling DesignWare driver leaves STOP/ABORT interrupts unmasked. */
+	write32(base + IC_INTR_MASK, 0);
+	write32(base + IC_ENABLE, 0);
+	stopwatch_init_msecs_expire(&timeout, 20);
+	while (read32(base + IC_ENABLE_STATUS) & 1) {
+		if (stopwatch_expired(&timeout))
+			return -1;
+		udelay(1);
+	}
+	read32(base + IC_CLR_INTR);
+	return read32(base + IC_INTR_MASK) ? -1 : 0;
+}
 
 uintptr_t dw_i2c_base_address(unsigned int bus)
 {

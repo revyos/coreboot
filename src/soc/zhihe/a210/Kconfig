@@ -33,8 +33,8 @@ config A210_BOOT_RAM
 	bool "Receive the complete firmware through BootROM USB"
 	default n
 
-config A210_AON_FILE
-	string "A210 AON firmware binary"
+config A210_SCMI_FILE
+	string "A210 E902 Zephyr SCMI firmware binary"
 	depends on A210_FIRMWARE
 
 config A210_PAYLOAD_DTB

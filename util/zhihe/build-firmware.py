@@ -12,8 +12,8 @@ parser.add_argument("--board", choices=("melonpi-v1", "melonpi-v2"),
                     default="melonpi-v2",
                     help="carrier revision; must match the supplied DTB")
 parser.add_argument("--opensbi", required=True, type=Path)
-parser.add_argument("--aon", required=True, type=Path,
-                    help="A210 E902 AON firmware, at most 64 KiB")
+parser.add_argument("--scmi", required=True, type=Path,
+                    help="A210 E902 Zephyr SCMI firmware, at most 63 KiB")
 payload_group = parser.add_mutually_exclusive_group(required=True)
 payload_group.add_argument("--payload", type=Path, help="S-mode ELF payload")
 payload_group.add_argument("--edk2-fd", type=Path,
@@ -34,8 +34,8 @@ if compatible.returncode or not names:
 if names[0] != expected:
     parser.error(f"{args.board} requires a {expected} DTB, got {names[0]}")
 board_settings = f"CONFIG_MELONPI_V{args.board[-1]}=y\n"
-if not 0 < args.aon.stat().st_size <= 64 * 1024:
-    parser.error("AON firmware must fit the 64 KiB SRAM window")
+if not 0 < args.scmi.stat().st_size <= 63 * 1024:
+    parser.error("SCMI firmware must fit below the shared-memory window")
 root = Path(__file__).resolve().parents[2]
 output = args.output.resolve()
 output.mkdir(parents=True, exist_ok=True)
@@ -133,7 +133,7 @@ settings += board_settings
 for name, path in (("OPENSBI_BLOB_PATH", args.opensbi),
                    ("PAYLOAD_FILE", args.payload),
                    ("A210_PAYLOAD_DTB", args.dtb),
-                   ("A210_AON_FILE", args.aon)):
+                   ("A210_SCMI_FILE", args.scmi)):
     path = str(path.resolve(strict=True))
     if any(c in path for c in ('"', "\\", "\n")):
         parser.error("input paths must not contain quotes or escapes")

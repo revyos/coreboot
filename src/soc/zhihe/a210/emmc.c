@@ -7,6 +7,7 @@
 #include <soc/storage.h>
 #include <soc/clock.h>
 #include <soc/emmc.h>
+#include <soc/scmi.h>
 #include <commonlib/storage/sdhci.h>
 #include <delay.h>
 #include <string.h>
@@ -116,6 +117,31 @@ uint64_t a210_emmc_capacity(unsigned int partition)
 		return 0;
 	return media.capacity[partition];
 }
+
+#if ENV_RAMSTAGE
+void a210_emmc_quiesce(void)
+{
+	if (initialized)
+		write16((void *)(A210_EMMC_BASE + SDHCI_CLOCK_CONTROL), 0);
+}
+
+int a210_emmc_resume(void)
+{
+	struct sd_mmc_ctrlr *ctrlr = &host.sd_mmc_ctrlr;
+	uint16_t enabled = SDHCI_CLOCK_INT_STABLE | SDHCI_CLOCK_CARD_EN;
+
+	if (!initialized)
+		return 0;
+	if (a210_scmi_clock_rate(A210_SCMI_CLK_EMMC_REF, &input_clock))
+		return -1;
+	ctrlr->clock_base = input_clock;
+	ctrlr->f_max = MIN(input_clock, 52000000U);
+	ctrlr->bus_hz = 0;
+	set_ios(ctrlr);
+	return (read16((void *)(A210_EMMC_BASE + SDHCI_CLOCK_CONTROL)) & enabled) ==
+	       enabled ? 0 : -1;
+}
+#endif
 
 int a210_emmc_read(unsigned int partition, size_t offset, size_t size,
 		   void *buffer)

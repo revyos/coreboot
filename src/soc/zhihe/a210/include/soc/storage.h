@@ -6,6 +6,8 @@
 #include <stdint.h>
 
 int a210_emmc_init(void);
+void a210_emmc_quiesce(void);
+int a210_emmc_resume(void);
 uint64_t a210_emmc_capacity(unsigned int partition);
 int a210_emmc_read(unsigned int partition, size_t offset, size_t size,
 		   void *buffer);

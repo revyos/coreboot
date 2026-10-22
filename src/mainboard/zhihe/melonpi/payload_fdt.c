@@ -7,6 +7,7 @@
 #include <device/mmio.h>
 #include <mcall.h>
 #include <soc/addressmap.h>
+#include <soc/scmi.h>
 #include <stdlib.h>
 
 static void prepare_fdt(void *unused)
@@ -17,6 +18,7 @@ static void prepare_fdt(void *unused)
 	char memory_type[] = "memory";
 	u64 address = A210_DRAM_BASE;
 	u64 size = (u64)read32((void *)(A210_DIAGNOSTIC_STATUS + 8)) << 20;
+	u32 uart_hz;
 
 	if (!original || !(tree = fdt_unflatten(original)))
 		die("Melon Pi: invalid payload device tree\n");
@@ -28,9 +30,9 @@ static void prepare_fdt(void *unused)
 	struct device_tree_node *uart = dt_find_node_by_path(
 	    tree, "/soc/serial@8401000", NULL, NULL, 0);
 
-	if (!uart || !uart_platform_refclk())
+	if (!uart || a210_scmi_clock_rate(A210_SCMI_CLK_UART4, &uart_hz))
 		die("Melon Pi: payload UART clock unavailable\n");
-	dt_add_u32_prop(uart, "clock-frequency", uart_platform_refclk());
+	dt_add_u32_prop(uart, "clock-frequency", uart_hz);
 	dt_add_u32_prop(uart, "current-speed", get_uart_baudrate());
 	void *flat = malloc(dt_flat_size(tree));
 
