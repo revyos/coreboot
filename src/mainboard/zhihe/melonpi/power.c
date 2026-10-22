@@ -4,7 +4,6 @@
 #include <device/i2c_simple.h>
 #include <soc/early.h>
 #include <soc/gpio.h>
-#include <soc/aon.h>
 #include "board.h"
 
 #define PMIC_ADDRESS 0x06
@@ -25,7 +24,7 @@
 #define CPU_P_PMIC_GPIO_ENABLE (1U << 2)
 
 /* SY70209 register layout and voltage steps from the A210 AON SDK. */
-static int cpu_voltage(unsigned int buck)
+static int cpu_voltage(unsigned int buck, unsigned int target_uv)
 {
 	const uint8_t reg = PMIC_BUCK_VOLTAGE_BASE + buck - 1;
 	uint8_t value, verify;
@@ -39,9 +38,9 @@ static int cpu_voltage(unsigned int buck)
 	if (uv > 1000000)
 		return -1;
 	/* Do not lower a rail inherited from a previous boot stage. */
-	if (uv >= CPU_BOOT_UV)
+	if (uv >= target_uv)
 		return 0;
-	value = (value & ~0x7f) | (CPU_BOOT_UV - 600000) / 12500;
+	value = (value & ~0x7f) | (target_uv - 600000) / 12500;
 	if (i2c_writeb(0, PMIC_ADDRESS, reg, value))
 		return -1;
 	udelay(100);
@@ -89,7 +88,7 @@ int melonpi_power_init(void)
 			return -1;
 	}
 	/* Raise SRAM before CPU logic. Keep the BootROM CPU clock. */
-	if (cpu_voltage(7) || cpu_voltage(6))
+	if (cpu_voltage(7, CPU_BOOT_UV) || cpu_voltage(6, CPU_BOOT_UV))
 		return -1;
 	printk(BIOS_INFO,
 	       "A210: DDR rails verified, CPU rails >= 800 mV\n");
@@ -142,31 +141,21 @@ int melonpi_secondary_power_init(void)
 }
 
 #define MELONPI_CPU_PERFORMANCE_UV 1000000
-#define AON_REGULATOR_DVDD_CPU 14
-#define AON_REGULATOR_DVDDM_CPU 15
-#define AON_REGULATOR_DVDD_CPU_P 18
-
 int melonpi_performance_power_init(void)
 {
-	/* AON owns PMIC access now. Raise SRAM before CPU logic. */
-	const unsigned int rails[] = {
-		AON_REGULATOR_DVDDM_CPU,
-		AON_REGULATOR_DVDD_CPU,
-		AON_REGULATOR_DVDD_CPU_P,
-	};
+	const uint8_t voltage = (MELONPI_CPU_PERFORMANCE_UV - 450000) / 5000;
+	uint8_t verify;
 
-	for (unsigned int i = 0; i < ARRAY_SIZE(rails); i++) {
-		unsigned int uv;
-
-		if (a210_aon_set_voltage(rails[i],
-				 MELONPI_CPU_PERFORMANCE_UV) ||
-		    a210_aon_get_voltage(rails[i], &uv) ||
-		    uv != MELONPI_CPU_PERFORMANCE_UV)
-			return -1;
-		printk(BIOS_INFO, "Melon Pi: AON rail %u at %u uV\n",
-		       rails[i], uv);
-	}
-	mdelay(1);
+	/* E902 is still stopped. Raise SRAM before logic, then the C920 rail. */
+	if (cpu_voltage(7, MELONPI_CPU_PERFORMANCE_UV) ||
+	    cpu_voltage(6, MELONPI_CPU_PERFORMANCE_UV) ||
+	    i2c_writeb(0, CPU_P_PMIC_ADDRESS, CPU_P_BUCK2_VOLTAGE, voltage))
+		return -1;
+	mdelay(2);
+	if (i2c_readb(0, CPU_P_PMIC_ADDRESS, CPU_P_BUCK2_VOLTAGE, &verify) ||
+	    verify != voltage)
+		return -1;
+	printk(BIOS_INFO, "Melon Pi: CPU supplies ready at 1 V\n");
 	return 0;
 }
 

@@ -22,8 +22,6 @@ static void mainboard_init(void *unused)
 		       "Melon Pi: display domain unavailable\n");
 	if (melonpi_secondary_power_init())
 		die("Melon Pi: C920 supply initialization failed\n");
-	if (a210_aon_start())
-		die("Melon Pi: AON startup failed\n");
 	if (melonpi_performance_power_init())
 		die("Melon Pi: CPU voltage initialization failed\n");
 	if (a210_prepare_harts())
@@ -31,6 +29,9 @@ static void mainboard_init(void *unused)
 	if (a210_set_cpu_clock(0, MELONPI_CPU_BOOT_MHZ) ||
 	    a210_set_cpu_clock(1, MELONPI_CPU_BOOT_MHZ))
 		die("Melon Pi: CPU clock initialization failed\n");
+	/* E902 adopts the initialized resources and owns subsequent changes. */
+	if (a210_aon_start())
+		die("Melon Pi: AON startup failed\n");
 }
 
 struct chip_operations mainboard_ops = {
